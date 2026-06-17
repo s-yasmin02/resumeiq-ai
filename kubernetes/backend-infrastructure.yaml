@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-resume-analyzer-deployment
+  labels:
+    app: ai-resume-analyzer
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ai-resume-analyzer
+  template:
+    metadata:
+      labels:
+        app: ai-resume-analyzer
+    spec:
+      containers:
+      - name: ai-resume-service
+        image: s-yasmin02/ai-resume-analyzer:latest
+        ports:
+        - containerPort: 8000
+        # AI APIs often need secure keys. In production, K8s injects these safely:
+        env:
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-credentials
+              key: gemini-key
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-resume-analyzer-service
+spec:
+  type: NodePort
+  selector:
+    app: ai-resume-analyzer
+  ports:
+  - port: 8000
+    targetPort: 8000
+    nodePort: 32080
